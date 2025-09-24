@@ -1,7 +1,6 @@
 import { pipeline } from "@xenova/transformers";
 
-// Move regex to top level for performance
-const ENTITY_PREFIX_REGEX = /^[BI]-/;
+const ENTRY_PREFIX_REGEX = /^[BI]-/;
 
 export type Keyword = {
   word: string;
@@ -15,16 +14,14 @@ export type KeywordExtractionResult = {
   totalCount: number;
 };
 
-// Cache the NER pipeline to avoid reloading it every time
-let cachedNer: any = null;
-
 export async function extractKeywordsFromTranscript(
   transcript: string
 ): Promise<KeywordExtractionResult> {
-  if (!cachedNer) {
-    cachedNer = await pipeline("ner", "Xenova/bert-base-NER");
-  }
-  const ner = cachedNer;
+  console.log(
+    `🔍 [NER] Starting keyword extraction for ${transcript.length} characters`
+  );
+
+  const ner = await pipeline("ner", "Xenova/bert-base-NER");
 
   // Process transcript in chunks to avoid length limitations
   const chunkSize = 1000;
@@ -33,6 +30,10 @@ export async function extractKeywordsFromTranscript(
   for (let i = 0; i < transcript.length; i += chunkSize) {
     chunks.push(transcript.slice(i, i + chunkSize));
   }
+
+  console.log(
+    `🔍 [NER] Processing ${chunks.length} chunks of ${chunkSize} characters each`
+  );
 
   let allResults: any[] = [];
   for (const chunkText of chunks) {
@@ -61,18 +62,20 @@ export async function extractKeywordsFromTranscript(
   }
 
   const keywords = Array.from(keywordMap.values()).sort(
-    (a: any, b: any) => b.score - a.score
+    (a, b) => b.score - a.score
   ); // Sort by confidence
 
-  // Group by entity type for better display
-  const groupedKeywords = keywords.reduce((acc: any, keyword: any) => {
-    const entityType = keyword.entity.replace(ENTITY_PREFIX_REGEX, ""); // Remove B-/I- prefix
-    if (!acc[entityType]) {
-      acc[entityType] = [];
-    }
-    acc[entityType].push(keyword);
-    return acc;
-  }, {});
+  const groupedKeywords = keywords.reduce(
+    (acc: Record<string, any[]>, keyword: any) => {
+      const entityType = keyword.entity.replace(ENTRY_PREFIX_REGEX, ""); // Remove B-/I- prefix
+      if (!acc[entityType]) {
+        acc[entityType] = [];
+      }
+      acc[entityType].push(keyword);
+      return acc;
+    },
+    {}
+  );
 
   return {
     keywords,

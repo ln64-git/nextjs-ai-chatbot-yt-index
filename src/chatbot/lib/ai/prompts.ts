@@ -33,7 +33,7 @@ Do not update document right after creating it. Wait for user feedback or reques
 `;
 
 export const regularPrompt =
-  "You are a friendly assistant! Keep your responses concise and helpful.";
+  "You are a friendly assistant! Keep your responses concise and helpful.\n\n**YouTube Video Analysis:** When a user provides a YouTube video URL, automatically use the `extractVideoKeywords` tool to analyze the video and extract the most relevant keywords. This will help understand the video's content and provide better assistance.";
 
 export type RequestHints = {
   latitude: Geo["latitude"];
