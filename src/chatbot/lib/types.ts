@@ -2,6 +2,7 @@ import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
 import type { ArtifactKind } from "@/components/artifact";
 import type { fetchYouTubeVideoKeywords } from "@/yt-index/tools/fetch-youtube-keywords";
+import type { fetchYouTubeVideoSegments } from "@/yt-index/tools/fetch-youtube-segments";
 import type { createDocument } from "./ai/tools/create-document";
 import type { getWeather } from "./ai/tools/get-weather";
 import type { requestSuggestions } from "./ai/tools/request-suggestions";
@@ -26,6 +27,9 @@ type requestSuggestionsTool = InferUITool<
 type fetchYouTubeVideoKeywordsTool = InferUITool<
   typeof fetchYouTubeVideoKeywords
 >;
+type fetchYouTubeVideoSegmentsTool = InferUITool<
+  typeof fetchYouTubeVideoSegments
+>;
 
 export type ChatTools = {
   getWeather: weatherTool;
@@ -33,6 +37,7 @@ export type ChatTools = {
   updateDocument: updateDocumentTool;
   requestSuggestions: requestSuggestionsTool;
   fetchYouTubeVideoKeywords: fetchYouTubeVideoKeywordsTool;
+  fetchYouTubeVideoSegments: fetchYouTubeVideoSegmentsTool;
 };
 
 export type CustomUIDataTypes = {

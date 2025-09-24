@@ -42,6 +42,7 @@ import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { fetchYouTubeVideoKeywords } from "@/yt-index/tools/fetch-youtube-keywords";
+import { fetchYouTubeVideoSegments } from "@/yt-index/tools/fetch-youtube-segments";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
@@ -190,6 +191,7 @@ export async function POST(request: Request) {
                   "updateDocument",
                   "requestSuggestions",
                   "fetchYouTubeVideoKeywords",
+                  "fetchYouTubeVideoSegments",
                 ],
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
@@ -201,6 +203,7 @@ export async function POST(request: Request) {
               dataStream,
             }),
             fetchYouTubeVideoKeywords,
+            fetchYouTubeVideoSegments,
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
