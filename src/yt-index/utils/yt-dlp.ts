@@ -143,10 +143,13 @@ async function extractTranscriptViaYtDlp(videoId: string): Promise<string> {
   try {
     await mkdir(tempDir, { recursive: true });
 
-    const command = `yt-dlp --write-subs --write-auto-subs --sub-langs en,en-US,en-GB --skip-download --output "${tempDir}/%(title)s.%(ext)s" "https://www.youtube.com/watch?v=${videoId}"`;
+    const command = `yt-dlp --write-subs --write-auto-subs --sub-langs en,en-US,en-GB --skip-download --no-warnings --output "${tempDir}/%(title)s.%(ext)s" "https://www.youtube.com/watch?v=${videoId}"`;
 
     try {
-      await execAsync(command);
+      const { stderr } = await execAsync(command);
+      if (stderr && !stderr.includes("WARNING")) {
+        console.log("⚠️ [TRANSCRIPT] yt-dlp stderr:", stderr);
+      }
     } catch (error) {
       console.log("⚠️ [TRANSCRIPT] yt-dlp command failed:", error);
       return "";

@@ -1,10 +1,9 @@
 import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
 import type { ArtifactKind } from "@/components/artifact";
-import type { extractVideoKeywords } from "@/yt-index/tools/extract-video-keywords";
-import type { fetchYouTubeVideoTranscript } from "@/yt-index/tools/fetch-youtube-video-transcript";
-import type { indexYouTubeChannel } from "@/yt-index/tools/index-youtube-channel";
-import type { searchYouTubeContent } from "@/yt-index/tools/search-youtube-content";
+import type { fetchKeywords } from "@/yt-index/tools/fetch-keywords";
+import type { fetchYouTubeVideoTranscript } from "@/yt-index/tools/fetch-youtube-transcript";
+import type { fetchYouTubeVideo } from "@/yt-index/tools/fetch-youtube-video";
 import type { createDocument } from "./ai/tools/create-document";
 import type { getWeather } from "./ai/tools/get-weather";
 import type { requestSuggestions } from "./ai/tools/request-suggestions";
@@ -26,29 +25,20 @@ type updateDocumentTool = InferUITool<ReturnType<typeof updateDocument>>;
 type requestSuggestionsTool = InferUITool<
   ReturnType<typeof requestSuggestions>
 >;
-type indexYouTubeChannelTool = InferUITool<
-  ReturnType<typeof indexYouTubeChannel>
->;
 type fetchYouTubeVideoTranscriptTool = InferUITool<
-  ReturnType<typeof fetchYouTubeVideoTranscript>
+  typeof fetchYouTubeVideoTranscript
 >;
-
-type searchYouTubeContentTool = InferUITool<
-  ReturnType<typeof searchYouTubeContent>
->;
-type extractVideoKeywordsTool = InferUITool<
-  ReturnType<typeof extractVideoKeywords>
->;
+type fetchYouTubeVideoTool = InferUITool<typeof fetchYouTubeVideo>;
+type fetchKeywordsTool = InferUITool<typeof fetchKeywords>;
 
 export type ChatTools = {
   getWeather: weatherTool;
   createDocument: createDocumentTool;
   updateDocument: updateDocumentTool;
   requestSuggestions: requestSuggestionsTool;
-  indexYouTubeChannel: indexYouTubeChannelTool;
   fetchYouTubeVideoTranscript: fetchYouTubeVideoTranscriptTool;
-  extractVideoKeywords: extractVideoKeywordsTool;
-  searchYouTubeContent: searchYouTubeContentTool;
+  fetchYouTubeVideo: fetchYouTubeVideoTool;
+  fetchKeywords: fetchKeywordsTool;
 };
 
 export type CustomUIDataTypes = {
