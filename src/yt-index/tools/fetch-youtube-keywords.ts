@@ -3,7 +3,7 @@ import { z } from "zod";
 import { extractKeywordsFromTranscript } from "../utils/keywords";
 import { fetchYouTubeTranscript } from "../utils/yt-dlp";
 
-export const fetchYouTubeVideoTranscript = tool({
+export const fetchYouTubeVideoKeywords = tool({
   description: "Fetch and extract transcript from a YouTube video using yt-dlp",
   inputSchema: z.object({
     url: z
@@ -13,8 +13,6 @@ export const fetchYouTubeVideoTranscript = tool({
   }),
   execute: async ({ url }) => {
     try {
-      console.log("🎬 [TRANSCRIPT] Starting transcript extraction for:", url);
-
       const result = await fetchYouTubeTranscript(url);
 
       if (result.success) {
@@ -23,36 +21,58 @@ export const fetchYouTubeVideoTranscript = tool({
           ReturnType<typeof extractKeywordsFromTranscript>
         > | null = null;
         try {
-          console.log("🔍 [TRANSCRIPT] Auto-extracting keywords...");
+          console.log("🔍 [TRANSCRIPT] extracting keywords...");
           keywords = await extractKeywordsFromTranscript(result.transcript);
           console.log(`🔍 [TRANSCRIPT] Found ${keywords.totalCount} keywords`);
         } catch (error) {
           console.warn("⚠️ [TRANSCRIPT] Keyword extraction failed:", error);
         }
 
+        // Truncate transcript for AI model to avoid context length issues
+        const maxTranscriptLength = 10_000; // 10k characters should be safe
+        const isTruncated = result.transcript.length > maxTranscriptLength;
+        const truncatedTranscript = isTruncated
+          ? `${result.transcript.substring(0, maxTranscriptLength)}... [truncated]`
+          : result.transcript;
+
+        const message = isTruncated
+          ? `${result.message} Note: Transcript was truncated to ${maxTranscriptLength.toLocaleString()} characters for AI processing. Full transcript (${result.transcriptLength.toLocaleString()} chars) was used for keyword extraction.`
+          : result.message;
+
         return {
           success: true,
           videoId: result.videoId,
           videoTitle: result.videoTitle,
           videoAuthor: result.videoAuthor,
-          transcript: result.transcript,
+          transcript: truncatedTranscript,
           transcriptLength: result.transcriptLength,
           summary: result.summary,
           keywords,
-          message: result.message,
+          message,
         };
       }
+
+      // Truncate transcript for AI model to avoid context length issues
+      const maxTranscriptLength = 10_000; // 10k characters should be safe
+      const isTruncated = result.transcript.length > maxTranscriptLength;
+      const truncatedTranscript = isTruncated
+        ? `${result.transcript.substring(0, maxTranscriptLength)}... [truncated]`
+        : result.transcript;
+
+      const message = isTruncated
+        ? `${result.message} Note: Transcript was truncated to ${maxTranscriptLength.toLocaleString()} characters for AI processing. Full transcript (${result.transcriptLength.toLocaleString()} chars) was used for keyword extraction.`
+        : result.message;
 
       return {
         success: false,
         videoId: result.videoId || "",
         videoTitle: result.videoTitle || "",
         videoAuthor: result.videoAuthor || "",
-        transcript: result.transcript,
+        transcript: truncatedTranscript,
         transcriptLength: result.transcriptLength,
         summary: result.summary,
         keywords: null,
-        message: result.message,
+        message,
       };
     } catch (error) {
       console.error(

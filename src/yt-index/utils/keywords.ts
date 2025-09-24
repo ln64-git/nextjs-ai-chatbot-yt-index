@@ -47,6 +47,98 @@ function mapEntityType(entity: string): string {
   return entityMap[entity] || "KEYWORD";
 }
 
+// Regex for sentence splitting - defined at top level for performance
+const SENTENCE_SPLIT_REGEX = /[.!?]+/;
+
+// Process long transcripts by chunking and sampling to avoid context length issues
+function processLongTranscript(transcript: string): string {
+  const MAX_LENGTH = 50_000; // 50k characters should be safe for most models
+  const CHUNK_SIZE = 10_000; // Process in 10k character chunks
+
+  if (transcript.length <= MAX_LENGTH) {
+    return transcript;
+  }
+
+  console.log(
+    `🔍 [KEYWORDS] Transcript too long (${transcript.length} chars), processing in chunks...`
+  );
+
+  // Split into sentences for better chunking
+  const sentences = transcript
+    .split(SENTENCE_SPLIT_REGEX)
+    .filter((s) => s.trim().length > 0);
+  const chunks: string[] = [];
+  let currentChunk = "";
+
+  for (const sentence of sentences) {
+    if (currentChunk.length + sentence.length > CHUNK_SIZE) {
+      if (currentChunk.trim()) {
+        chunks.push(currentChunk.trim());
+      }
+      currentChunk = sentence;
+    } else {
+      currentChunk += (currentChunk ? " " : "") + sentence;
+    }
+  }
+
+  if (currentChunk.trim()) {
+    chunks.push(currentChunk.trim());
+  }
+
+  console.log(`🔍 [KEYWORDS] Created ${chunks.length} chunks`);
+
+  // Sample chunks to stay within limits
+  let sampledText = "";
+  const maxChunks = Math.ceil(MAX_LENGTH / CHUNK_SIZE);
+
+  if (chunks.length <= maxChunks) {
+    // Use all chunks if we're within limits
+    sampledText = chunks.join(" ");
+  } else {
+    // Sample chunks evenly distributed
+    const step = Math.floor(chunks.length / maxChunks);
+    const sampledChunks: string[] = [];
+
+    for (
+      let i = 0;
+      i < chunks.length && sampledChunks.length < maxChunks;
+      i += step
+    ) {
+      sampledChunks.push(chunks[i]);
+    }
+
+    // Add the last chunk to ensure we get the end
+    if (chunks.length > 0) {
+      const lastChunk = chunks.at(-1);
+      if (lastChunk && !sampledChunks.includes(lastChunk)) {
+        sampledChunks.push(lastChunk);
+      }
+    }
+
+    sampledText = sampledChunks.join(" ");
+  }
+
+  // If still too long, truncate
+  if (sampledText.length > MAX_LENGTH) {
+    sampledText = sampledText.substring(0, MAX_LENGTH);
+    // Try to end at a sentence boundary
+    const lastSentenceEnd = Math.max(
+      sampledText.lastIndexOf("."),
+      sampledText.lastIndexOf("!"),
+      sampledText.lastIndexOf("?")
+    );
+    if (lastSentenceEnd > MAX_LENGTH * 0.8) {
+      sampledText = sampledText.substring(0, lastSentenceEnd + 1);
+    }
+  }
+
+  console.log(
+    `🔍 [KEYWORDS] Sampled ${sampledText.length} characters from ${transcript.length} original`
+  );
+
+  return sampledText;
+}
+
 // Main keyword extraction function
 export async function extractKeywordsFromTranscript(
   transcript: string
@@ -55,14 +147,20 @@ export async function extractKeywordsFromTranscript(
     `🔍 [KEYWORDS] Starting keyword extraction for ${transcript.length} characters`
   );
 
+  // Handle very long transcripts by chunking and sampling
+  const processedTranscript = processLongTranscript(transcript);
+  console.log(
+    `🔍 [KEYWORDS] Processed transcript length: ${processedTranscript.length} characters`
+  );
+
   // Extract keywords using NER, general methods, and Knowledge Graph
-  const nerKeywords = await extractNamedEntities(transcript);
-  const generalKeywords = extractGeneralKeywords(transcript);
+  const nerKeywords = await extractNamedEntities(processedTranscript);
+  const generalKeywords = extractGeneralKeywords(processedTranscript);
   const knowledgeGraphKeywords =
-    await extractKnowledgeGraphKeywords(transcript);
+    await extractKnowledgeGraphKeywords(processedTranscript);
 
   console.log(
-    `🔍 [KEYWORDS] NER found ${nerKeywords.length} entities, general found ${generalKeywords.length} keywords, Knowledge Graph found ${knowledgeGraphKeywords.length} keywords`
+    `🔍 [KEYWORDS] \nNER found ${nerKeywords.length} entities, general found ${generalKeywords.length} keywords, Knowledge Graph found ${knowledgeGraphKeywords.length} keywords`
   );
 
   // Combine all methods for better coverage
@@ -84,8 +182,8 @@ export async function extractKeywordsFromTranscript(
 async function extractNamedEntities(transcript: string): Promise<Keyword[]> {
   const ner = await pipeline("ner", "Xenova/bert-base-NER");
 
-  // Process transcript in chunks to avoid length limitations
-  const chunkSize = 1000;
+  // Process transcript in smaller chunks to avoid NER model limitations
+  const chunkSize = 500; // Smaller chunks for better NER performance
   const chunks: string[] = [];
 
   for (let i = 0; i < transcript.length; i += chunkSize) {
@@ -98,9 +196,14 @@ async function extractNamedEntities(transcript: string): Promise<Keyword[]> {
 
   let allResults: any[] = [];
   for (const chunkText of chunks) {
-    if (chunkText) {
-      const chunkResults = await ner(chunkText);
-      allResults = allResults.concat(chunkResults);
+    if (chunkText.trim()) {
+      try {
+        const chunkResults = await ner(chunkText);
+        allResults = allResults.concat(chunkResults);
+      } catch (error) {
+        console.warn("🔸 [NER] Error processing chunk:", error);
+        // Continue with other chunks
+      }
     }
   }
 

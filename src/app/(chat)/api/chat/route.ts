@@ -41,9 +41,7 @@ import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
-import { fetchKeywords } from "@/yt-index/tools/fetch-keywords";
-import { fetchYouTubeVideoTranscript } from "@/yt-index/tools/fetch-youtube-transcript";
-import { fetchYouTubeVideo } from "@/yt-index/tools/fetch-youtube-video";
+import { fetchYouTubeVideoKeywords } from "@/yt-index/tools/fetch-youtube-keywords";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
@@ -191,9 +189,7 @@ export async function POST(request: Request) {
                   "createDocument",
                   "updateDocument",
                   "requestSuggestions",
-                  "fetchYouTubeVideo",
-                  "fetchYouTubeVideoTranscript",
-                  "fetchKeywords",
+                  "fetchYouTubeVideoKeywords",
                 ],
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
@@ -204,9 +200,7 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
-            fetchYouTubeVideo,
-            fetchYouTubeVideoTranscript,
-            fetchKeywords,
+            fetchYouTubeVideoKeywords,
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
