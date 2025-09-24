@@ -1,6 +1,9 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { extractKeywordsFromTranscript } from "../utils/keywords";
+import {
+  DICTIONARY_CONFIGS,
+  extractKeywordsFromTranscript,
+} from "../utils/keywords";
 import { fetchYouTubeTranscript } from "../utils/yt-dlp";
 
 export const fetchYouTubeVideoTranscript = tool({
@@ -23,8 +26,15 @@ export const fetchYouTubeVideoTranscript = tool({
           ReturnType<typeof extractKeywordsFromTranscript>
         > | null = null;
         try {
-          console.log("🔍 [TRANSCRIPT] Auto-extracting keywords...");
-          keywords = await extractKeywordsFromTranscript(result.transcript);
+          console.log(
+            "🔍 [TRANSCRIPT] Auto-extracting keywords with Google Knowledge Graph..."
+          );
+          keywords = await extractKeywordsFromTranscript(
+            result.transcript,
+            DICTIONARY_CONFIGS.comprehensive,
+            ["google_knowledge"], // Only use Google Knowledge Graph
+            { google_knowledge: 2.0 } // Boost knowledge graph entities
+          );
           console.log(`🔍 [TRANSCRIPT] Found ${keywords.totalCount} keywords`);
         } catch (error) {
           console.warn("⚠️ [TRANSCRIPT] Keyword extraction failed:", error);
