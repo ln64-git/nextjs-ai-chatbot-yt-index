@@ -3,20 +3,7 @@ import { z } from "zod";
 
 import { extractKeywordsFromTranscript } from "@/yt-index/utils/keywords";
 import { extractSegments } from "@/yt-index/utils/segments";
-import { YouTubeUrlInputSchema } from "@/yt-index/types";
 import { fetchYouTubeTranscript } from "./utils/youtube";
-
-// Helper function to execute the tool and get the result
-async function executeTool(toolInstance: any, params: any) {
-  const result = await toolInstance.execute(params);
-  // Handle AsyncIterable result
-  if (result && typeof result[Symbol.asyncIterator] === 'function') {
-    const iterator = result[Symbol.asyncIterator]();
-    const { value } = await iterator.next();
-    return value;
-  }
-  return result;
-}
 
 // ============================================================================
 // UNIFIED YOUTUBE PROCESSING TOOL
@@ -127,56 +114,5 @@ export const processYouTubeVideo = tool({
         message: `❌ An error occurred while processing the video: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
-  },
-});
-
-// ============================================================================
-// LEGACY TOOLS (for backward compatibility)
-// ============================================================================
-
-export const fetchYouTubeVideoKeywords = tool({
-  description: "Fetch and extract transcript from a YouTube video using yt-dlp (legacy)",
-  inputSchema: YouTubeUrlInputSchema,
-  execute: async ({ url }) => {
-    const result = await executeTool(processYouTubeVideo, { 
-      url, 
-      includeKeywords: true, 
-      includeSegments: false 
-    });
-    
-    return {
-      success: result.success,
-      videoId: result.videoId,
-      videoTitle: result.videoTitle,
-      videoAuthor: result.videoAuthor,
-      transcript: result.transcript,
-      transcriptLength: result.transcriptLength,
-      summary: result.summary,
-      keywords: result.keywords,
-      message: result.message,
-    };
-  },
-});
-
-export const fetchYouTubeVideoSegments = tool({
-  description: "Extract transcript segments from a YouTube video using yt-dlp (legacy)",
-  inputSchema: YouTubeUrlInputSchema,
-  execute: async ({ url }) => {
-    const result = await executeTool(processYouTubeVideo, { 
-      url, 
-      includeKeywords: false, 
-      includeSegments: true 
-    });
-    
-    return {
-      success: result.success,
-      videoId: result.videoId,
-      videoTitle: result.videoTitle,
-      videoAuthor: result.videoAuthor,
-      transcriptLength: result.transcriptLength,
-      segments: result.segments,
-      totalSegments: result.totalSegments,
-      message: result.message,
-    };
   },
 });
