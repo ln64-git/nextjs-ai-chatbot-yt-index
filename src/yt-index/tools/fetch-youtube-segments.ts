@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { fetchYouTubeTranscript } from "../utils/yt-dlp";
 import { extractSegments } from "../utils/segments";
+import { fetchYouTubeTranscript } from "../utils/yt-dlp";
 
 export const fetchYouTubeVideoSegments = tool({
   description: "Extract transcript segments from a YouTube video using yt-dlp",
@@ -18,10 +18,6 @@ export const fetchYouTubeVideoSegments = tool({
       if (result.success) {
         // Extract segments from the transcript
         const segments = extractSegments(result.transcript);
-
-        console.log(
-          `🔍 [SEGMENTS] Extracted ${segments.length} segments from transcript`
-        );
 
         return {
           success: true,
@@ -46,7 +42,6 @@ export const fetchYouTubeVideoSegments = tool({
         message: result.message,
       };
     } catch (error) {
-      console.error("❌ [SEGMENTS] Error during segment extraction:", error);
       return {
         success: false,
         videoId: "",

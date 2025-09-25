@@ -1,3 +1,13 @@
 {
-  "recommendations": ["biomejs.biome"]
+  "recommendations": [
+    "ms-playwright.playwright",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-next"
+  ],
+  "unwantedRecommendations": [
+    "vitest.explorer",
+    "bun.vscode-bun",
+    "ms-vscode.test-adapter-converter"
+  ]
 }

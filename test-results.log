@@ -1,0 +1,52 @@
+
+(process:523996): VIPS-WARNING **: 19:39:20.971: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+Running 9 tests using 8 workers
+
+[1A[2K
+(process:524147): VIPS-WARNING **: 19:39:22.110: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+
+[1A[2K[1/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:37:7 › YouTube Tools › keywords - long video
+[1A[2K
+(process:524179): VIPS-WARNING **: 19:39:22.218: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+
+[1A[2K
+(process:524146): VIPS-WARNING **: 19:39:22.219: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+
+[1A[2K
+(process:524173): VIPS-WARNING **: 19:39:22.229: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+
+[1A[2K
+(process:524153): VIPS-WARNING **: 19:39:22.242: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+
+[1A[2K
+(process:524166): VIPS-WARNING **: 19:39:22.255: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+
+[1A[2K[2/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:27:7 › YouTube Tools › keywords - valid video
+[1A[2K[3/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:75:7 › YouTube Tools › segments - long video
+[1A[2K
+(process:524159): VIPS-WARNING **: 19:39:22.317: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+
+[1A[2K[4/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:84:7 › YouTube Tools › segments - invalid URL
+[1A[2K[5/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:46:7 › YouTube Tools › keywords - invalid URL
+[1A[2K
+(process:524180): VIPS-WARNING **: 19:39:22.338: unable to load "/usr/lib/vips-modules-8.17/vips-openslide.so" -- libopenslide.so.1: cannot open shared object file: No such file or directory
+
+
+[1A[2K[6/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:64:7 › YouTube Tools › segments - valid video
+[1A[2K[7/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:103:7 › YouTube Tools › integration - both tools
+[1A[2K[8/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:55:7 › YouTube Tools › keywords - non-existent video
+[1A[2K[9/9] [yt-index] › src/yt-index/tests/youtube-tools.test.ts:94:7 › YouTube Tools › segments - non-existent video
+[1A[2K  9 passed (13.7s)
+
+To open last HTML report run:
+[36m[39m
+[36m  pnpm exec playwright show-report[39m
+[36m[39m

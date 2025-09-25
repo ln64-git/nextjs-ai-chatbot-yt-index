@@ -1,0 +1,8 @@
+{
+  "watch": ["src/yt-index", "tests/yt-index"],
+  "ext": "ts,js,json",
+  "ignore": ["tests/yt-index/**/*.test.ts"],
+  "exec": "pnpm exec playwright test --project=yt-index 2>&1 | grep -v 'unable to load.*vips-openslide'",
+  "delay": 1000,
+  "verbose": true
+}

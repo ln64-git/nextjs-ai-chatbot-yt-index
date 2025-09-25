@@ -15,7 +15,13 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
-    "test": "export PLAYWRIGHT=True && pnpm exec playwright test"
+    "test": "pnpm exec playwright test",
+    "test:chatbot": "pnpm exec playwright test --project=chatbot-e2e --project=chatbot-routes",
+    "test:yt-index": "pnpm exec playwright test --project=yt-index 2>&1 | grep -v 'unable to load.*vips-openslide'",
+    "test:yt-index:report": "pnpm exec playwright test --project=yt-index && pnpm exec playwright show-report",
+    "test:yt-index:watch": "nodemon",
+    "test:yt-index:ui": "pnpm exec playwright test --project=yt-index --ui",
+    "test:report": "pnpm exec playwright show-report"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.33",
@@ -105,6 +111,7 @@
     "@types/react-dom": "^18",
     "@types/react-syntax-highlighter": "^15.5.13",
     "drizzle-kit": "^0.25.0",
+    "nodemon": "^3.1.10",
     "postcss": "^8",
     "tailwindcss": "^4.1.13",
     "tsx": "^4.19.1",

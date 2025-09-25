@@ -10,6 +10,11 @@ config({
   path: ".env.local",
 });
 
+// Suppress VIPS warnings
+process.env.VIPS_WARNING = "0";
+process.env.G_MESSAGES_DEBUG = "none";
+process.env.GLIB_MESSAGES_DEBUG = "none";
+
 /* Use process.env.PORT by default and fallback to port 3000 */
 const PORT = process.env.PORT || 3000;
 
@@ -23,7 +28,7 @@ const baseURL = `http://localhost:${PORT}`;
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: "./chatbot/tests",
+  testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -52,15 +57,25 @@ export default defineConfig({
   /* Configure projects */
   projects: [
     {
-      name: "e2e",
+      name: "chatbot-e2e",
+      testDir: "./tests/chatbot",
       testMatch: /e2e\/.*.test.ts/,
       use: {
         ...devices["Desktop Chrome"],
       },
     },
     {
-      name: "routes",
+      name: "chatbot-routes",
+      testDir: "./tests/chatbot",
       testMatch: /routes\/.*.test.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+      },
+    },
+    {
+      name: "yt-index",
+      testDir: "./tests/yt-index",
+      testMatch: /.*\.test\.ts/,
       use: {
         ...devices["Desktop Chrome"],
       },

@@ -1,6 +1,4 @@
 import { exec } from "node:child_process";
-import { mkdir, readdir, readFile, rmdir, unlink } from "node:fs/promises";
-import { join } from "node:path";
 import { promisify } from "node:util";
 
 const execAsync = promisify(exec);
@@ -19,18 +17,11 @@ type VideoMetadata = {
   author_name: string;
 };
 
-// Simple cache for transcripts
-const transcriptCache = new Map<
-  string,
-  { transcript: string; timestamp: number }
->();
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+// No local caching - use database for persistence
 
 // Core function for fetching YouTube transcripts
 export async function fetchYouTubeTranscript(url: string) {
   try {
-    console.log("🎬 [TRANSCRIPT] Starting transcript extraction for:", url);
-
     // Extract video ID
     const videoId = extractVideoId(url);
     if (!videoId) {
@@ -44,29 +35,8 @@ export async function fetchYouTubeTranscript(url: string) {
       };
     }
 
-    console.log("🔍 [TRANSCRIPT] Extracted video ID:", videoId);
-
-    // Check cache first
-    const cached = transcriptCache.get(videoId);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      console.log("⚡ [TRANSCRIPT] Using cached transcript");
-      return {
-        success: true,
-        message: `📝 **Video Analysis: Cached**\n\n**Video ID:** ${videoId}\n**Transcript Length:** ${cached.transcript.length} characters\n\n✅ Using cached transcript data.`,
-        transcript: cached.transcript,
-        videoId,
-        transcriptLength: cached.transcript.length,
-        summary:
-          cached.transcript.split(" ").slice(0, 200).join(" ") +
-          (cached.transcript.split(" ").length > 200 ? "..." : ""),
-      };
-    }
-
     // Get video metadata
     const metadata = await getVideoMetadata(videoId);
-    console.log(
-      `📊 [TRANSCRIPT] Video: ${metadata.title} by ${metadata.author_name}`
-    );
 
     const transcript = await extractTranscriptViaYtDlp(videoId);
     if (!transcript) {
@@ -82,15 +52,7 @@ export async function fetchYouTubeTranscript(url: string) {
       };
     }
 
-    // Cache the transcript
-    transcriptCache.set(videoId, {
-      transcript,
-      timestamp: Date.now(),
-    });
-
-    console.log(
-      `✅ [TRANSCRIPT] Successfully extracted transcript: ${transcript.length} characters`
-    );
+    // Transcript will be stored in database by the calling tools
 
     return {
       success: true,
@@ -104,8 +66,7 @@ export async function fetchYouTubeTranscript(url: string) {
         transcript.split(" ").slice(0, 200).join(" ") +
         (transcript.split(" ").length > 200 ? "..." : ""),
     };
-  } catch (error) {
-    console.error("❌ [TRANSCRIPT] Error:", error);
+  } catch {
     return {
       success: false,
       message:
@@ -131,59 +92,55 @@ async function getVideoMetadata(videoId: string): Promise<VideoMetadata> {
     if (response.ok) {
       return (await response.json()) as VideoMetadata;
     }
-  } catch (error) {
-    console.error("Error fetching metadata:", error);
+  } catch {
+    // Metadata fetch failed, using defaults
   }
   return { title: "Unknown", author_name: "Unknown" };
 }
 
 async function extractTranscriptViaYtDlp(videoId: string): Promise<string> {
-  const tempDir = join(process.cwd(), "temp_transcripts");
-
   try {
-    await mkdir(tempDir, { recursive: true });
-
-    const command = `yt-dlp --write-subs --write-auto-subs --sub-langs en,en-US,en-GB --skip-download --no-warnings --output "${tempDir}/%(title)s.%(ext)s" "https://www.youtube.com/watch?v=${videoId}"`;
+    // Use yt-dlp to get subtitle URLs only (no file downloads)
+    const command = `yt-dlp --skip-download --no-warnings --print-json "https://www.youtube.com/watch?v=${videoId}"`;
 
     try {
-      const { stderr } = await execAsync(command);
+      const { stdout, stderr } = await execAsync(command, {
+        maxBuffer: 1024 * 1024 * 10, // 10MB buffer
+      });
+
       if (stderr && !stderr.includes("WARNING")) {
-        console.log("⚠️ [TRANSCRIPT] yt-dlp stderr:", stderr);
+        // yt-dlp stderr output (non-warning)
       }
-    } catch (error) {
-      console.log("⚠️ [TRANSCRIPT] yt-dlp command failed:", error);
+
+      const data = JSON.parse(stdout);
+
+      // Look for subtitles in the output
+      if (data.subtitles || data.automatic_captions) {
+        const subtitles = data.subtitles || data.automatic_captions;
+        const englishSubs =
+          subtitles.en || subtitles["en-US"] || subtitles["en-GB"];
+
+        if (englishSubs && englishSubs.length > 0) {
+          // Get the first available English subtitle
+          const subtitleUrl = englishSubs[0].url;
+
+          const subtitleResponse = await fetch(subtitleUrl);
+          const subtitleContent = await subtitleResponse.text();
+
+          const transcript = parseVTT(subtitleContent);
+          if (transcript) {
+            return transcript;
+          }
+        }
+      }
+    } catch {
+      // yt-dlp command failed
       return "";
     }
 
-    const files = await readdir(tempDir);
-    const subtitleFiles = files.filter(
-      (f) => f.endsWith(".vtt") || f.endsWith(".srt") || f.endsWith(".json")
-    );
-
-    for (const file of subtitleFiles) {
-      const filePath = join(tempDir, file);
-      const transcript = await parseSubtitleFile(filePath, file);
-
-      if (transcript) {
-        console.log(
-          `✅ [TRANSCRIPT] Success via yt-dlp: ${transcript.length} chars`
-        );
-        await unlink(filePath).catch(() => {
-          // Ignore cleanup errors
-        });
-        await rmdir(tempDir).catch(() => {
-          // Ignore cleanup errors
-        });
-        return transcript;
-      }
-    }
-
-    await rmdir(tempDir).catch(() => {
-      // Ignore cleanup errors
-    });
     return "";
-  } catch (error) {
-    console.error("❌ [TRANSCRIPT] yt-dlp method failed:", error);
+  } catch {
+    // yt-dlp method failed
     return "";
   }
 }
@@ -213,53 +170,4 @@ function parseVTT(content: string): string {
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-function parseSRT(content: string): string {
-  return content
-    .split("\n")
-    .filter(
-      (line) =>
-        !line.match(SRT_NUMBER_REGEX) && !line.includes("-->") && line.trim()
-    )
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function parseJSON(content: string): string {
-  try {
-    const data = JSON.parse(content);
-    return (
-      data.events
-        ?.map((event: any) => event.segs?.map((seg: any) => seg.utf8).join(""))
-        .filter(Boolean)
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim() || ""
-    );
-  } catch {
-    return "";
-  }
-}
-
-async function parseSubtitleFile(
-  filePath: string,
-  fileName: string
-): Promise<string> {
-  const content = await readFile(filePath, "utf-8");
-  if (content.length < 10) {
-    return "";
-  }
-
-  let transcript = "";
-  if (fileName.endsWith(".vtt")) {
-    transcript = parseVTT(content);
-  } else if (fileName.endsWith(".srt")) {
-    transcript = parseSRT(content);
-  } else if (fileName.endsWith(".json")) {
-    transcript = parseJSON(content);
-  }
-
-  return transcript.length > 10 ? transcript : "";
 }

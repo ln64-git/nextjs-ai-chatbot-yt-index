@@ -1,35 +1,49 @@
 {
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[javascript]": {
-    "editor.defaultFormatter": "biomejs.biome"
+  "testing.automaticallyOpenPeekView": "never",
+  "testing.defaultGutterClickAction": "run",
+  "testing.followRunningTest": true,
+  "testing.openTesting": "openExplorer",
+  "testing.gutterEnabled": true,
+  "testing.autoRun.delay": 1000,
+  "testing.autoRun.mode": "rerun",
+  "testing.autoRun.watch": true,
+  "playwright.reuseBrowser": false,
+  "playwright.showTrace": false,
+  "playwright.baseURL": "http://localhost:3000",
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "vitest.enable": false,
+  "vitest.disabledWorkspaceFolders": [
+    "."
+  ],
+  "bun.enable": false,
+  "bun.disabledWorkspaceFolders": [
+    "."
+  ],
+  "jest.enable": false,
+  "jest.disabledWorkspaceFolders": [
+    "."
+  ],
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.turbo": true,
+    "**/coverage": true,
+    "**/test-results": true,
+    "**/playwright-report": true
   },
-  "[typescript]": {
-    "editor.defaultFormatter": "biomejs.biome"
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.turbo": true,
+    "**/coverage": true,
+    "**/test-results": true,
+    "**/playwright-report": true
   },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[css]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[graphql]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "editor.formatOnSave": true,
-  "editor.formatOnPaste": true,
-  "emmet.showExpandedAbbreviation": "never",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.biome": "explicit",
-    "source.organizeImports.biome": "explicit"
-  }
+  "testing.automaticallyOpenTestResults": "openExplorer"
 }

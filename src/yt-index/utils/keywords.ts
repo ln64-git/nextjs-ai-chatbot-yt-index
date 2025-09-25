@@ -59,10 +59,6 @@ function processLongTranscript(transcript: string): string {
     return transcript;
   }
 
-  console.log(
-    `🔍 [KEYWORDS] Transcript too long (${transcript.length} chars), processing in chunks...`
-  );
-
   // Split into sentences for better chunking
   const sentences = transcript
     .split(SENTENCE_SPLIT_REGEX)
@@ -84,8 +80,6 @@ function processLongTranscript(transcript: string): string {
   if (currentChunk.trim()) {
     chunks.push(currentChunk.trim());
   }
-
-  console.log(`🔍 [KEYWORDS] Created ${chunks.length} chunks`);
 
   // Sample chunks to stay within limits
   let sampledText = "";
@@ -132,10 +126,6 @@ function processLongTranscript(transcript: string): string {
     }
   }
 
-  console.log(
-    `🔍 [KEYWORDS] Sampled ${sampledText.length} characters from ${transcript.length} original`
-  );
-
   return sampledText;
 }
 
@@ -143,25 +133,14 @@ function processLongTranscript(transcript: string): string {
 export async function extractKeywordsFromTranscript(
   transcript: string
 ): Promise<KeywordExtractionResult> {
-  console.log(
-    `🔍 [KEYWORDS] Starting keyword extraction for ${transcript.length} characters`
-  );
-
   // Handle very long transcripts by chunking and sampling
   const processedTranscript = processLongTranscript(transcript);
-  console.log(
-    `🔍 [KEYWORDS] Processed transcript length: ${processedTranscript.length} characters`
-  );
 
   // Extract keywords using NER, general methods, and Knowledge Graph
   const nerKeywords = await extractNamedEntities(processedTranscript);
   const generalKeywords = extractGeneralKeywords(processedTranscript);
   const knowledgeGraphKeywords =
     await extractKnowledgeGraphKeywords(processedTranscript);
-
-  console.log(
-    `🔍 [KEYWORDS] \nNER found ${nerKeywords.length} entities, general found ${generalKeywords.length} keywords, Knowledge Graph found ${knowledgeGraphKeywords.length} keywords`
-  );
 
   // Combine all methods for better coverage
   const combinedKeywords = combineKeywords(
@@ -190,19 +169,14 @@ async function extractNamedEntities(transcript: string): Promise<Keyword[]> {
     chunks.push(transcript.slice(i, i + chunkSize));
   }
 
-  console.log(
-    `🔍 [NER] Processing ${chunks.length} chunks of ${chunkSize} characters each`
-  );
-
   let allResults: any[] = [];
   for (const chunkText of chunks) {
     if (chunkText.trim()) {
       try {
         const chunkResults = await ner(chunkText);
         allResults = allResults.concat(chunkResults);
-      } catch (error) {
-        console.warn("🔸 [NER] Error processing chunk:", error);
-        // Continue with other chunks
+      } catch {
+        // Error processing chunk, continue with other chunks
       }
     }
   }
@@ -285,20 +259,14 @@ async function extractKnowledgeGraphKeywords(
     !API_CONFIG.google_knowledge.enabled ||
     !API_CONFIG.google_knowledge.apiKey
   ) {
-    console.log("🔸 [KNOWLEDGE_GRAPH] API not configured, skipping");
     return [];
   }
 
   try {
-    console.log(
-      "🌐 [KNOWLEDGE_GRAPH] Fetching entities from Google Knowledge Graph..."
-    );
-
     // Extract potential entity terms from transcript (longer, meaningful words)
     const potentialTerms = extractPotentialEntityTerms(transcript);
 
     if (potentialTerms.length === 0) {
-      console.log("🔸 [KNOWLEDGE_GRAPH] No potential entity terms found");
       return [];
     }
 
@@ -321,23 +289,14 @@ async function extractKnowledgeGraphKeywords(
             });
           }
         }
-      } catch (error) {
-        console.warn(
-          `🔸 [KNOWLEDGE_GRAPH] Failed to fetch entities for "${term}":`,
-          error
-        );
+      } catch {
+        // Failed to fetch entities for term
       }
     }
 
-    console.log(
-      `🌐 [KNOWLEDGE_GRAPH] Found ${keywords.length} relevant entities`
-    );
     return keywords.sort((a, b) => b.score - a.score);
-  } catch (error) {
-    console.warn(
-      "🔸 [KNOWLEDGE_GRAPH] Knowledge Graph extraction failed:",
-      error
-    );
+  } catch {
+    // Knowledge Graph extraction failed
     return [];
   }
 }
@@ -651,23 +610,7 @@ function groupKeywordsByType(keywords: Keyword[]): Record<string, Keyword[]> {
 }
 
 // Log keywords for debugging
-export function logKeywords(result: KeywordExtractionResult): void {
-  console.log(`🔍 [KEYWORDS] Found ${result.totalCount} unique keywords:`);
-
-  for (const [entityType, entityKeywords] of Object.entries(
-    result.groupedKeywords
-  )) {
-    console.log(`\n  📌 ${entityType.toUpperCase()}S:`);
-    for (const [index, keyword] of entityKeywords.slice(0, 10).entries()) {
-      const sources = keyword.sources ? ` (${keyword.sources.join(", ")})` : "";
-      console.log(
-        `    ${index + 1}. "${keyword.word}" - ${(keyword.score * 100).toFixed(1)}%${sources}`
-      );
-    }
-    if (entityKeywords.length > 10) {
-      console.log(
-        `    ... and ${entityKeywords.length - 10} more ${entityType.toLowerCase()}s`
-      );
-    }
-  }
+export function logKeywords(_result: KeywordExtractionResult): void {
+  // Debug logging function - can be used for development
+  // Implementation removed to clean up console output
 }

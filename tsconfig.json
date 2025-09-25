@@ -29,7 +29,7 @@
     "src/**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.js"
-  ],
+, "tests/chatbot/fixtures.ts", "tests/chatbot/helpers.ts"  ],
   "exclude": [
     "node_modules",
     "chatbot/**",

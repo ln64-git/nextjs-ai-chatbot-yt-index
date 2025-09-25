@@ -21,11 +21,9 @@ export const fetchYouTubeVideoKeywords = tool({
           ReturnType<typeof extractKeywordsFromTranscript>
         > | null = null;
         try {
-          console.log("🔍 [TRANSCRIPT] extracting keywords...");
           keywords = await extractKeywordsFromTranscript(result.transcript);
-          console.log(`🔍 [TRANSCRIPT] Found ${keywords.totalCount} keywords`);
-        } catch (error) {
-          console.warn("⚠️ [TRANSCRIPT] Keyword extraction failed:", error);
+        } catch {
+          // Keyword extraction failed
         }
 
         // Truncate transcript for AI model to avoid context length issues
@@ -75,10 +73,6 @@ export const fetchYouTubeVideoKeywords = tool({
         message,
       };
     } catch (error) {
-      console.error(
-        "❌ [TRANSCRIPT] Error during transcript extraction:",
-        error
-      );
       return {
         success: false,
         videoId: "",
