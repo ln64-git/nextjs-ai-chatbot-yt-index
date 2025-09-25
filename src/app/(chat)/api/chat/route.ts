@@ -41,8 +41,7 @@ import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
-import { fetchYouTubeVideoKeywords } from "@/yt-index/tools/fetch-youtube-keywords";
-import { fetchYouTubeVideoSegments } from "@/yt-index/tools/fetch-youtube-segments";
+import { fetchYouTubeVideoKeywords, fetchYouTubeVideoSegments } from "@/yt-index/tools";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
