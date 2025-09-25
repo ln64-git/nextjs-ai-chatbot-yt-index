@@ -32,6 +32,17 @@ export const YouTubeVideoSchema = z.object({
   description: z.string().optional(),
 });
 
+export const YouTubeSearchVideoSchema = z.object({
+  title: z.string(),
+  url: z.string(),
+  uploader: z.string(),
+  duration: z.number(),
+  viewCount: z.number(),
+  uploadDate: z.string(),
+  description: z.string(),
+  thumbnail: z.string(),
+});
+
 export const YouTubeChannelIndexResultSchema = z.object({
   success: z.boolean(),
   channelTitle: z.string().optional(),
@@ -57,20 +68,7 @@ export const YouTubeSearchResultSchema = z.object({
   query: z.string().optional(),
   type: z.string().optional(),
   totalResults: z.number().optional(),
-  results: z
-    .array(
-      z.object({
-        title: z.string(),
-        url: z.string(),
-        uploader: z.string(),
-        duration: z.number(),
-        viewCount: z.number(),
-        uploadDate: z.string(),
-        description: z.string(),
-        thumbnail: z.string(),
-      })
-    )
-    .optional(),
+  results: z.array(YouTubeSearchVideoSchema).optional(),
   message: z.string(),
   error: z.string().optional(),
 });
@@ -118,66 +116,70 @@ export const VideoValidationResultSchema = z.object({
 // ============================================================================
 
 export const YouTubeUrlInputSchema = z.object({
-  url: z
-    .string()
-    .url()
-    .describe("The YouTube video URL to process"),
+  url: z.string().url().describe("The YouTube video URL to process"),
+});
+
+export const ProcessYouTubeVideoInputSchema = z.object({
+  url: z.string().url().describe("The YouTube video URL to process"),
+  includeKeywords: z
+    .boolean()
+    .default(true)
+    .describe("Whether to extract keywords from the transcript"),
+  includeSegments: z
+    .boolean()
+    .default(true)
+    .describe("Whether to extract segments from the transcript"),
+  maxSegments: z
+    .number()
+    .default(15)
+    .describe("Maximum number of segments to return"),
+});
+
+// ============================================================================
+// PROCESSING RESULT SCHEMAS
+// ============================================================================
+
+export const ProcessYouTubeVideoResultSchema = z.object({
+  success: z.boolean(),
+  videoId: z.string(),
+  videoTitle: z.string().optional(),
+  videoAuthor: z.string().optional(),
+  transcriptLength: z.number(),
+  transcript: z.string(),
+  summary: z.string(),
+  message: z.string(),
+  keywords: z.any().nullable(),
+  segments: z.array(z.string()),
+  totalSegments: z.number(),
 });
 
 // ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
+export type VideoMetadata = z.infer<typeof VideoMetadataSchema>;
+export type BaseResult = z.infer<typeof BaseResultSchema>;
 export type YouTubeVideo = z.infer<typeof YouTubeVideoSchema>;
-export type YouTubeChannelIndexResult = z.infer<typeof YouTubeChannelIndexResultSchema>;
-export type YouTubeTranscriptResult = z.infer<typeof YouTubeTranscriptResultSchema>;
+export type YouTubeSearchVideo = z.infer<typeof YouTubeSearchVideoSchema>;
+export type YouTubeChannelIndexResult = z.infer<
+  typeof YouTubeChannelIndexResultSchema
+>;
+export type YouTubeTranscriptResult = z.infer<
+  typeof YouTubeTranscriptResultSchema
+>;
 export type YouTubeSearchResult = z.infer<typeof YouTubeSearchResultSchema>;
 export type YouTubeUrlInput = z.infer<typeof YouTubeUrlInputSchema>;
+export type ProcessYouTubeVideoInput = z.infer<
+  typeof ProcessYouTubeVideoInputSchema
+>;
+export type ProcessYouTubeVideoResult = z.infer<
+  typeof ProcessYouTubeVideoResultSchema
+>;
 
-// ============================================================================
-// Utils TYPES
-// ============================================================================
-
-export type VideoMetadata = {
-  title: string;
-  author_name: string;
-};
-
-export type BaseResult = {
-  success: boolean;
-  message: string;
-  videoId: string;
-  videoTitle?: string;
-  videoAuthor?: string;
-  transcriptLength: number;
-};
-
-export type TranscriptResult = BaseResult & {
-  transcript: string;
-  summary: string;
-};
-
-export type Keyword = {
-  word: string;
-  entity: string;
-  score: number;
-  sources?: string[];
-};
-
-export type KeywordExtractionResult = {
-  keywords: Keyword[];
-  groupedKeywords: Record<string, Keyword[]>;
-  totalCount: number;
-  dictionariesUsed: string[];
-};
-
-export type SegmentResult = BaseResult & {
-  segments: string[];
-  totalSegments: number;
-};
-
-export type VideoValidationResult = {
-  isValid: boolean;
-  videoId: string | null;
-  error?: string;
-};
+export type TranscriptResult = z.infer<typeof TranscriptResultSchema>;
+export type Keyword = z.infer<typeof KeywordSchema>;
+export type KeywordExtractionResult = z.infer<
+  typeof KeywordExtractionResultSchema
+>;
+export type SegmentResult = z.infer<typeof SegmentResultSchema>;
+export type VideoValidationResult = z.infer<typeof VideoValidationResultSchema>;

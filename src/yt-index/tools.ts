@@ -1,34 +1,19 @@
 import { tool } from "ai";
-import { z } from "zod";
 
 import { extractKeywordsFromTranscript } from "@/yt-index/utils/keywords";
 import { extractSegments } from "@/yt-index/utils/segments";
 import { fetchYouTubeTranscript } from "./utils/youtube";
+import type { ProcessYouTubeVideoResult } from "./types";
+import { ProcessYouTubeVideoInputSchema } from "./types";
 
 // ============================================================================
 // UNIFIED YOUTUBE PROCESSING TOOL
 // ============================================================================
 
 export const processYouTubeVideo = tool({
-  description: "Process a YouTube video to extract transcript, keywords, and segments",
-  inputSchema: z.object({
-    url: z
-      .string()
-      .url()
-      .describe("The YouTube video URL to process"),
-    includeKeywords: z
-      .boolean()
-      .default(true)
-      .describe("Whether to extract keywords from the transcript"),
-    includeSegments: z
-      .boolean()
-      .default(true)
-      .describe("Whether to extract segments from the transcript"),
-    maxSegments: z
-      .number()
-      .default(15)
-      .describe("Maximum number of segments to return"),
-  }),
+  description:
+    "Process a YouTube video to extract transcript, keywords, and segments",
+  inputSchema: ProcessYouTubeVideoInputSchema,
   execute: async ({ url, includeKeywords, includeSegments, maxSegments }) => {
     try {
       const transcriptResult = await fetchYouTubeTranscript(url);
@@ -50,19 +35,7 @@ export const processYouTubeVideo = tool({
       }
 
       // Process transcript based on requested features
-      const results: {
-        success: boolean;
-        videoId: string;
-        videoTitle?: string;
-        videoAuthor?: string;
-        transcriptLength: number;
-        transcript: string;
-        summary: string;
-        message: string;
-        keywords: any;
-        segments: string[];
-        totalSegments: number;
-      } = {
+      const results: ProcessYouTubeVideoResult = {
         success: true,
         videoId: transcriptResult.videoId,
         videoTitle: transcriptResult.videoTitle,
@@ -79,7 +52,9 @@ export const processYouTubeVideo = tool({
       // Extract keywords if requested
       if (includeKeywords) {
         try {
-          results.keywords = await extractKeywordsFromTranscript(transcriptResult.transcript);
+          results.keywords = await extractKeywordsFromTranscript(
+            transcriptResult.transcript
+          );
         } catch {
           results.keywords = null;
           results.message += " Note: Keyword extraction failed.";
